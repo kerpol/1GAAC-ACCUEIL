@@ -20,11 +20,17 @@ def main() -> int:
 
 	port = 8000
 	url = f"http://127.0.0.1:{port}/index.html"
+	httpd: TCPServer | None = None
+
+	class ReusableTCPServer(TCPServer):
+		allow_reuse_address = True
 
 	def run_server() -> None:
+		nonlocal httpd
 		os.chdir(root_dir)
-		with TCPServer(("127.0.0.1", port), SimpleHTTPRequestHandler) as httpd:
-			httpd.serve_forever()
+		with ReusableTCPServer(("127.0.0.1", port), SimpleHTTPRequestHandler) as server:
+			httpd = server
+			server.serve_forever()
 
 	server_thread = threading.Thread(target=run_server, daemon=True)
 	server_thread.start()
@@ -58,6 +64,9 @@ def main() -> int:
 	try:
 		server_thread.join()
 	except KeyboardInterrupt:
+		if httpd:
+			httpd.shutdown()
+			httpd.server_close()
 		print("\nServer stopped.")
 
 	return 0
