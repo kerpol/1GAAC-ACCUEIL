@@ -6,6 +6,7 @@ import subprocess
 import sys
 import threading
 import webbrowser
+from functools import partial
 from http.server import SimpleHTTPRequestHandler
 from pathlib import Path
 from socketserver import TCPServer
@@ -25,12 +26,17 @@ def main() -> int:
 	class ReusableTCPServer(TCPServer):
 		allow_reuse_address = True
 
+	handler = partial(SimpleHTTPRequestHandler, directory=str(root_dir))
+	try:
+		httpd = ReusableTCPServer(("127.0.0.1", port), handler)
+	except OSError as exc:
+		print(f"Error: could not bind to 127.0.0.1:{port} ({exc}).", file=sys.stderr)
+		return 1
+
 	def run_server() -> None:
-		nonlocal httpd
-		os.chdir(root_dir)
-		with ReusableTCPServer(("127.0.0.1", port), SimpleHTTPRequestHandler) as server:
-			httpd = server
-			server.serve_forever()
+		assert httpd is not None
+		with httpd:
+			httpd.serve_forever()
 
 	server_thread = threading.Thread(target=run_server, daemon=True)
 	server_thread.start()
