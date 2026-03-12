@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import os
 import shlex
 import subprocess
@@ -10,7 +9,6 @@ from functools import partial
 from http.server import SimpleHTTPRequestHandler
 from pathlib import Path
 from socketserver import TCPServer
-
 
 def main() -> int:
 	root_dir = Path(__file__).resolve().parent
