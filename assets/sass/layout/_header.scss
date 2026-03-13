@@ -128,6 +128,13 @@
 							background-color: _palette(border-bg-alt);
 						}
 					}
+
+						&.nav-wide {
+							a {
+								letter-spacing: 0.14rem;
+								font-size: 0.75rem;
+							}
+						}
 				}
 			}
 
