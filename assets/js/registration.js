@@ -116,7 +116,8 @@
 
       const name = document.createElement("span");
       name.className = "team-name";
-      name.textContent = team.name;
+      const normalizedName = String(team.name || "").trim().toLowerCase();
+      name.textContent = normalizedName === "prof" ? "Prof (gratuit)" : team.name;
 
       const count = document.createElement("span");
       count.className = "team-count";
