@@ -104,13 +104,6 @@ async def unhandled_error_handler(_: Request, exc: Exception) -> JSONResponse:
     return fail(f"Erreur interne du serveur : {exc}", 500)
 
 
-@app.on_event("startup")
-async def startup_checks() -> None:
-    # Keep startup resilient: only DB is required for read endpoints like /api/teams.
-    # Payment-related variables are validated lazily on their dedicated routes.
-    get_required_env("DATABASE_URL")
-
-
 site_url = os.getenv("SITE_URL", "").strip()
 if site_url:
     app.add_middleware(
