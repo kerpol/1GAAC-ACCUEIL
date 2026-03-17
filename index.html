@@ -75,17 +75,43 @@ A travers l’organisation de ce tournoi de futsal, notre objectif est de rassem
 							<article id="contact">
 								<h2 class="major">Inscription</h2>
 								<span class="image main"><img src="images/pic03.jpg" alt="" /></span>
-								<p>Voici le lien GOOGLE FORMS pour l'inscription :</p>
-								<p>
-									<span class="form-status-button">formulaire d'inscription disponible à partir du vendredi 20 mars</span>
-								</p>
-								<p>Les différentes PIZZA :</p>
-									<p></p>Margarita </p>
-									<p></p>Regina</p>
-									<p></p>Toscana</p>
-									<p></p>3 Fromages</p>
-									<p></p>Paysane</p>
-									<p></p>Végétarienne, si il y en a pas beaucoup (10MAX)</p>
+								<p>Renseigne tes informations et choisis une equipe. Le paiement HelloAsso est obligatoire pour valider l'inscription.</p>
+
+								<form id="inscription-form" class="inscription-form" novalidate>
+									<div class="fields">
+										<div class="field half">
+											<label for="fullName">Nom complet</label>
+											<input type="text" name="fullName" id="fullName" placeholder="Ex: Lina Martin" required />
+										</div>
+										<div class="field half">
+											<label for="classroom">Classe</label>
+											<input type="text" name="classroom" id="classroom" placeholder="Ex: 2nde B" required />
+										</div>
+										<div class="field">
+											<label for="email">Email</label>
+											<input type="email" name="email" id="email" placeholder="prenom.nom@exemple.fr" required />
+										</div>
+										<div class="field">
+											<fieldset class="team-fieldset">
+												<legend>Equipe</legend>
+												<p id="team-help" class="team-help">Chargement des equipes...</p>
+												<div id="team-options" class="team-options" role="radiogroup" aria-describedby="team-help"></div>
+											</fieldset>
+										</div>
+									</div>
+
+									<div id="form-error" class="form-error" role="alert" aria-live="assertive" tabindex="-1"></div>
+
+									<ul class="actions">
+										<li>
+											<button type="submit" id="validate-pay-btn" class="button primary">
+												<span id="validate-pay-label">Valider et payer</span>
+											</button>
+										</li>
+									</ul>
+								</form>
+
+								<p>Le choix de la pizza se fait directement dans HelloAsso.</p>
 							</article>
 
 						<!-- Elements -->
@@ -349,6 +375,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 			<script src="assets/js/breakpoints.min.js"></script>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
+			<script src="assets/js/registration.js" defer></script>
 
 	</body>
 </html>

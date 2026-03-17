@@ -306,6 +306,78 @@ input, select, textarea {
 		margin: 0 0 2rem 0;
 	}
 
+	/* Inscription API */
+	.inscription-form .button[disabled] {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.form-error {
+		min-height: 1.5rem;
+		margin: 0 0 1rem 0;
+		font-weight: 600;
+		color: #ffb3b3;
+	}
+
+	.team-fieldset {
+		border: solid 1px rgba(255, 255, 255, 0.25);
+		padding: 0.75rem 1rem 1rem 1rem;
+		border-radius: 0.25rem;
+	}
+
+	.team-fieldset legend {
+		padding: 0 0.4rem;
+	}
+
+	.team-help {
+		margin: 0 0 0.75rem 0;
+		font-size: 0.9rem;
+		opacity: 0.85;
+	}
+
+	.team-options {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.6rem;
+	}
+
+	.team-option {
+		display: grid;
+		grid-template-columns: auto 1fr auto auto;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.6rem 0.7rem;
+		border: solid 1px rgba(255, 255, 255, 0.22);
+		border-radius: 0.25rem;
+		background: rgba(255, 255, 255, 0.04);
+	}
+
+	.team-option.is-full {
+		opacity: 0.65;
+	}
+
+	.team-name {
+		font-weight: 600;
+	}
+
+	.team-count {
+		font-size: 0.9rem;
+		opacity: 0.9;
+	}
+
+	.team-badge {
+		font-size: 0.75rem;
+		border: solid 1px rgba(255, 255, 255, 0.35);
+		border-radius: 999px;
+		padding: 0.1rem 0.45rem;
+	}
+
+	@media screen and (max-width: 736px) {
+		.team-options {
+			grid-template-columns: 1fr;
+		}
+	}
+
 		form > :last-child {
 			margin-bottom: 0;
 		}

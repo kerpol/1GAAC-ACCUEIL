@@ -1,0 +1,430 @@
+.pageShell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(218, 244, 209, 0.85), transparent 28%),
+    radial-gradient(circle at top right, rgba(255, 228, 189, 0.7), transparent 24%),
+    linear-gradient(180deg, #fffaf0 0%, #f6f3ea 48%, #eef2e7 100%);
+  color: #182016;
+  padding: 48px 20px 72px;
+}
+
+.heroSection,
+.formSection,
+.confirmationSection {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.heroSection {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.85fr);
+  align-items: start;
+  margin-bottom: 28px;
+}
+
+.heroCopy,
+.infoCard,
+.registrationForm,
+.statusPanel {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(24, 32, 22, 0.08);
+  box-shadow: 0 26px 80px rgba(58, 66, 33, 0.12);
+}
+
+.heroCopy {
+  border-radius: 32px;
+  padding: 40px;
+}
+
+.infoCard {
+  border-radius: 28px;
+  padding: 28px;
+  align-self: stretch;
+  position: relative;
+  overflow: hidden;
+}
+
+.infoCard::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -45% auto;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(57, 128, 40, 0.14);
+}
+
+.eyebrow,
+.infoLabel,
+.statusEyebrow,
+.summaryLabel {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #5d6d2c;
+}
+
+.pageTitle,
+.sectionTitle,
+.statusTitle {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+}
+
+.pageTitle {
+  font-size: clamp(2.8rem, 6vw, 5.4rem);
+}
+
+.sectionTitle {
+  font-size: clamp(1.9rem, 4vw, 3rem);
+}
+
+.statusTitle {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+}
+
+.pageLead,
+.infoText,
+.sectionText,
+.statusText,
+.teamMeta,
+.fieldHint,
+.summaryValue,
+.inlineNotice {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #344126;
+}
+
+.formSection {
+  display: grid;
+  gap: 20px;
+}
+
+.formIntro {
+  max-width: 720px;
+}
+
+.registrationForm,
+.statusPanel {
+  border-radius: 32px;
+  padding: 34px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.fieldWrap {
+  display: grid;
+  gap: 8px;
+}
+
+.fieldLabel {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 700;
+  color: #22301d;
+}
+
+.requiredMark {
+  color: #b4421b;
+}
+
+.fieldInput {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid rgba(34, 48, 29, 0.18);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  color: #182016;
+  background: rgba(255, 255, 255, 0.92);
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.fieldInput:focus,
+.teamCard:focus-within,
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.statusPanel:focus-visible,
+.alertBox:focus-visible,
+.teamErrorWrap:focus-visible {
+  outline: none;
+  border-color: #406f2a;
+  box-shadow: 0 0 0 4px rgba(83, 143, 59, 0.18);
+}
+
+.fieldInput:focus {
+  transform: translateY(-1px);
+}
+
+.fieldInputError {
+  border-color: #b4421b;
+}
+
+.fieldError {
+  margin: 0;
+  color: #9f2f17;
+  font-size: 0.95rem;
+}
+
+.fieldHint {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.teamFieldset {
+  border: none;
+  padding: 0;
+  margin: 18px 0 0;
+}
+
+.sectionLegend {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.sectionHelp {
+  margin: 0 0 16px;
+  color: #4b5a39;
+}
+
+.teamGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.teamCard {
+  display: grid;
+  gap: 12px;
+  border-radius: 24px;
+  border: 1px solid rgba(34, 48, 29, 0.12);
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(241, 246, 232, 0.96));
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.teamCard:hover {
+  transform: translateY(-2px);
+  border-color: rgba(83, 143, 59, 0.42);
+}
+
+.teamCardSelected {
+  border-color: #406f2a;
+  box-shadow: 0 12px 30px rgba(64, 111, 42, 0.16);
+}
+
+.teamCardDisabled {
+  opacity: 0.66;
+  cursor: not-allowed;
+  background: linear-gradient(180deg, rgba(246, 245, 240, 0.96), rgba(236, 235, 229, 0.95));
+}
+
+.teamHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.teamName {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.badgeFull,
+.successMark,
+.warningMark,
+.errorMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  width: fit-content;
+  border-radius: 999px;
+  padding: 0 12px;
+  font-weight: 700;
+  font-size: 0.86rem;
+}
+
+.badgeFull,
+.warningMark {
+  background: rgba(187, 104, 36, 0.14);
+  color: #8b4213;
+}
+
+.successMark {
+  background: rgba(64, 111, 42, 0.15);
+  color: #2d6720;
+}
+
+.errorMark {
+  background: rgba(180, 66, 27, 0.14);
+  color: #9f2f17;
+}
+
+.teamRadio {
+  accent-color: #406f2a;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.teamErrorWrap {
+  border-radius: 20px;
+}
+
+.summaryCard {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(232, 243, 224, 0.92);
+  border: 1px solid rgba(64, 111, 42, 0.14);
+}
+
+.summaryValue {
+  margin: 0;
+  font-weight: 700;
+}
+
+.alertBox {
+  margin: 0 0 4px;
+  border-radius: 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(180, 66, 27, 0.2);
+  background: rgba(255, 236, 229, 0.9);
+  color: #872410;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+  border-radius: 999px;
+  padding: 0 22px;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+  text-decoration: none;
+}
+
+.primaryButton {
+  border: none;
+  background: linear-gradient(135deg, #3d6a29 0%, #6d9f3d 100%);
+  color: #fffdf5;
+  box-shadow: 0 20px 32px rgba(61, 106, 41, 0.18);
+}
+
+.primaryButton:hover:not(:disabled),
+.secondaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  box-shadow: none;
+}
+
+.secondaryButton {
+  border: 1px solid rgba(34, 48, 29, 0.12);
+  background: rgba(255, 255, 255, 0.8);
+  color: #22301d;
+}
+
+.buttonInlineState {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spinner,
+.spinnerSmall {
+  display: inline-block;
+  border-radius: 999px;
+  border: 3px solid rgba(64, 111, 42, 0.16);
+  border-top-color: #406f2a;
+  animation: spin 0.9s linear infinite;
+}
+
+.spinner {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 16px;
+}
+
+.spinnerSmall {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+}
+
+.confirmationSection {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 120px);
+}
+
+.statusPanel {
+  width: min(720px, 100%);
+}
+
+.inlineNotice {
+  margin: 14px 0 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .heroSection,
+  .formGrid,
+  .teamGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroCopy,
+  .infoCard,
+  .registrationForm,
+  .statusPanel {
+    padding: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fieldInput,
+  .teamCard,
+  .primaryButton,
+  .secondaryButton,
+  .spinner,
+  .spinnerSmall {
+    transition: none;
+    animation: none;
+  }
+}
