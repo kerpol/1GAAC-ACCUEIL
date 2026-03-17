@@ -26,10 +26,22 @@ def load_env_file(env_path: str = ".env") -> None:
 
 
 def get_database_url() -> str:
-    database_url = os.getenv("DATABASE_URL", "").strip()
-    if not database_url:
-        raise RuntimeError("La variable d'environnement DATABASE_URL est obligatoire.")
-    return database_url
+    candidate_keys = (
+        "DATABASE_URL",
+        "POSTGRES_URL",
+        "POSTGRES_PRISMA_URL",
+        "SUPABASE_DB_URL",
+    )
+
+    for key in candidate_keys:
+        value = os.getenv(key, "").strip()
+        if value:
+            return value
+
+    checked = ", ".join(candidate_keys)
+    raise RuntimeError(
+        f"Aucune URL de base de données trouvée. Variables testées: {checked}."
+    )
 
 
 def get_connection() -> Connection:
