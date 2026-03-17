@@ -145,6 +145,21 @@ def list_teams() -> JSONResponse:
     return ok(teams)
 
 
+@app.get("/api/diagnostic/env")
+def diagnostic_env() -> JSONResponse:
+    keys = (
+        "DATABASE_URL",
+        "POSTGRES_URL",
+        "POSTGRES_PRISMA_URL",
+        "SUPABASE_DB_URL",
+        "JWT_STATE_SECRET",
+        "SITE_URL",
+        "HELLOASSO_CHECKOUT_URL",
+    )
+    data = {key: bool(os.getenv(key, "").strip()) for key in keys}
+    return ok(data)
+
+
 @app.post("/api/register/prepare")
 def prepare_registration(body: PrepareBody, request: Request) -> JSONResponse:
     enforce_rate_limit(request, "/api/register/prepare")
