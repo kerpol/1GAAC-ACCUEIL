@@ -25,9 +25,6 @@ def load_env_file(env_path: str = ".env") -> None:
         os.environ.setdefault(key, value)
 
 
-load_env_file()
-
-
 def get_database_url() -> str:
     database_url = os.getenv("DATABASE_URL", "").strip()
     if not database_url:
