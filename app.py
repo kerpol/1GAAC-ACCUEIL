@@ -110,11 +110,12 @@ async def startup_checks() -> None:
         get_required_env(env_name)
 
 
-site_url = os.getenv("SITE_URL", "").strip()
-if site_url:
+site_urls_raw = os.getenv("SITE_URL", "").strip()
+allowed_origins = [origin.strip() for origin in site_urls_raw.split(",") if origin.strip()]
+if allowed_origins:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[site_url],
+        allow_origins=allowed_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST"],
         allow_headers=["*"],

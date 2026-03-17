@@ -2,9 +2,14 @@
   const form = document.getElementById("inscription-form");
   if (!form) return;
 
-  // En local, le frontend statique tourne sur :8000 et l'API sur :8001.
-  // En production avec reverse-proxy, laisser vide permet d'utiliser le meme host.
-  const API_BASE_URL = window.location.port === "8000" ? "http://127.0.0.1:8001" : "";
+  // Priorite:
+  // 1) meta[name="api-base-url"] pour la prod (ex: https://api.mondomaine.fr)
+  // 2) fallback local 8000 -> 8001
+  // 3) meme origine (reverse proxy)
+  const apiMeta = document.querySelector('meta[name="api-base-url"]');
+  const metaBaseUrl = apiMeta && apiMeta.content ? apiMeta.content.trim().replace(/\/$/, "") : "";
+  const API_BASE_URL = metaBaseUrl || (window.location.port === "8000" ? "http://127.0.0.1:8001" : "");
+
   function apiUrl(path) {
     return API_BASE_URL ? API_BASE_URL + path : path;
   }
@@ -60,7 +65,8 @@
       renderTeams(json.data);
       teamHelp.textContent = "Choisis une equipe disponible.";
     } catch (_error) {
-      teamHelp.textContent = "Impossible de charger les equipes pour le moment.";
+      teamHelp.textContent =
+        "Impossible de charger les equipes pour le moment. Verifie la connexion API.";
       teamOptions.innerHTML = "";
     }
   }
