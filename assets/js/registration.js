@@ -84,6 +84,17 @@
       radio.required = true;
       radio.addEventListener("change", function () {
         selectedTeam = radio.value;
+        const options = teamOptions.querySelectorAll(".team-option");
+        options.forEach(function (option) {
+          option.classList.remove("is-selected");
+        });
+        wrapper.classList.add("is-selected");
+      });
+
+      wrapper.addEventListener("click", function () {
+        if (isFull) return;
+        radio.checked = true;
+        radio.dispatchEvent(new Event("change", { bubbles: true }));
       });
 
       const name = document.createElement("span");
