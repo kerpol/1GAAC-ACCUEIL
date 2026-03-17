@@ -106,8 +106,9 @@ async def unhandled_error_handler(_: Request, exc: Exception) -> JSONResponse:
 
 @app.on_event("startup")
 async def startup_checks() -> None:
-    for env_name in ("DATABASE_URL", "JWT_STATE_SECRET", "SITE_URL", "HELLOASSO_CHECKOUT_URL"):
-        get_required_env(env_name)
+    # Keep startup resilient: only DB is required for read endpoints like /api/teams.
+    # Payment-related variables are validated lazily on their dedicated routes.
+    get_required_env("DATABASE_URL")
 
 
 site_url = os.getenv("SITE_URL", "").strip()
