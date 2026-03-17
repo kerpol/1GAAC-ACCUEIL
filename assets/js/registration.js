@@ -20,6 +20,10 @@
   const submitLabel = document.getElementById("validate-pay-label");
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const SPECIAL_CHOICES = [
+    { id: "visitor", name: "Visiteur", is_unlimited: true },
+    { id: "teacher", name: "Prof", is_unlimited: true },
+  ];
   let selectedTeam = "";
 
   function setError(message) {
@@ -69,8 +73,21 @@
   function renderTeams(teams) {
     teamOptions.innerHTML = "";
 
-    teams.forEach((team) => {
-      const isFull = Number(team.current_count) >= Number(team.max_slots);
+    const existingNames = new Set(
+      teams.map(function (team) {
+        return String(team.name || "").trim().toLowerCase();
+      })
+    );
+
+    const allChoices = teams.concat(
+      SPECIAL_CHOICES.filter(function (choice) {
+        return !existingNames.has(choice.name.toLowerCase());
+      })
+    );
+
+    allChoices.forEach((team) => {
+      const isUnlimited = team.is_unlimited === true;
+      const isFull = !isUnlimited && Number(team.current_count) >= Number(team.max_slots);
 
       const wrapper = document.createElement("label");
       wrapper.className = "team-option" + (isFull ? " is-full" : "");
@@ -103,7 +120,9 @@
 
       const count = document.createElement("span");
       count.className = "team-count";
-      count.textContent = team.current_count + "/" + team.max_slots;
+      count.textContent = isUnlimited
+        ? "Illimite"
+        : String(team.current_count) + "/" + String(team.max_slots);
 
       wrapper.appendChild(radio);
       wrapper.appendChild(name);

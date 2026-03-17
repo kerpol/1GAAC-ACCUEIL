@@ -21,6 +21,11 @@ load_env_file()
 
 app = FastAPI(title="Tournoi Futsal API", version="1.0.0")
 rate_limiter = InMemoryRateLimiter(max_requests=20, window_seconds=60)
+SPECIAL_TEAM_CHOICES = {
+    "visitor": "Visiteur",
+    "teacher": "Prof",
+}
+SPECIAL_TEAM_MAX_SLOTS = 1000000
 
 
 class ApiError(Exception):
@@ -76,6 +81,39 @@ def find_team_by_identifier(team_identifier: str) -> dict[str, Any] | None:
         with conn.cursor() as cur:
             cur.execute(query, (team_identifier, team_identifier, team_identifier))
             return cur.fetchone()
+
+
+def is_special_team_identifier(team_identifier: str) -> bool:
+    return team_identifier in SPECIAL_TEAM_CHOICES
+
+
+def get_or_create_special_team(conn: Any, team_identifier: str) -> dict[str, Any]:
+    team_name = SPECIAL_TEAM_CHOICES[team_identifier]
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT id::text AS id, name, max_slots
+            FROM public.teams
+            WHERE lower(name) = lower(%s)
+            ORDER BY id
+            LIMIT 1
+            """,
+            (team_name,),
+        )
+        team = cur.fetchone()
+
+        if team is None:
+            cur.execute(
+                """
+                INSERT INTO public.teams (name, max_slots)
+                VALUES (%s, %s)
+                RETURNING id::text AS id, name, max_slots
+                """,
+                (team_name, SPECIAL_TEAM_MAX_SLOTS),
+            )
+            team = cur.fetchone()
+
+    return team
 
 
 @app.exception_handler(ApiError)
@@ -164,7 +202,11 @@ def diagnostic_env() -> JSONResponse:
 def prepare_registration(body: PrepareBody, request: Request) -> JSONResponse:
     enforce_rate_limit(request, "/api/register/prepare")
 
-    team = find_team_by_identifier(body.teamId)
+    if is_special_team_identifier(body.teamId):
+        team = {"id": body.teamId, "name": SPECIAL_TEAM_CHOICES[body.teamId]}
+    else:
+        team = find_team_by_identifier(body.teamId)
+
     if team is None:
         raise ApiError(400, "Équipe introuvable. Vérifiez l'identifiant ou le nom fourni.")
 
@@ -213,31 +255,36 @@ def confirm_registration(
     try:
         with transaction() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT id, name, max_slots
-                    FROM public.teams
-                    WHERE id::text = %s
-                    FOR UPDATE
-                    """,
-                    (payload.teamId,),
-                )
-                team = cur.fetchone()
-                if team is None:
-                    raise ApiError(400, "Équipe introuvable pour cette confirmation de paiement.")
+                is_special_team = is_special_team_identifier(payload.teamId)
 
-                cur.execute(
-                    """
-                    SELECT COUNT(*)::int AS current_count
-                    FROM public.registrations
-                    WHERE team_id = %s AND paid = TRUE
-                    """,
-                    (team["id"],),
-                )
-                current_count = cur.fetchone()["current_count"]
+                if is_special_team:
+                    team = get_or_create_special_team(conn, payload.teamId)
+                else:
+                    cur.execute(
+                        """
+                        SELECT id, name, max_slots
+                        FROM public.teams
+                        WHERE id::text = %s
+                        FOR UPDATE
+                        """,
+                        (payload.teamId,),
+                    )
+                    team = cur.fetchone()
+                    if team is None:
+                        raise ApiError(400, "Équipe introuvable pour cette confirmation de paiement.")
 
-                if current_count >= team["max_slots"]:
-                    raise ApiError(409, "Cette équipe est complète. Merci de choisir une autre équipe.")
+                    cur.execute(
+                        """
+                        SELECT COUNT(*)::int AS current_count
+                        FROM public.registrations
+                        WHERE team_id = %s AND paid = TRUE
+                        """,
+                        (team["id"],),
+                    )
+                    current_count = cur.fetchone()["current_count"]
+
+                    if current_count >= team["max_slots"]:
+                        raise ApiError(409, "Cette équipe est complète. Merci de choisir une autre équipe.")
 
                 if txId:
                     cur.execute(
