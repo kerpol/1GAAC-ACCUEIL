@@ -18,7 +18,9 @@
   const errorBox = document.getElementById("form-error");
   const submitButton = document.getElementById("validate-pay-btn");
   const submitLabel = document.getElementById("validate-pay-label");
-  const FORM_IS_OPEN = false;
+  // Débloque le formulaire à partir de vendredi 20 mars 2026 à 20h
+  const FORM_OPEN_DATE = new Date(2026, 2, 20, 20, 0, 0); // 20 mars 2026 20:00:00
+  const FORM_IS_OPEN = new Date() >= FORM_OPEN_DATE;
   const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

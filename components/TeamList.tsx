@@ -36,7 +36,9 @@ const DEFAULT_VALUES: FormValues = {
   teamId: "",
 };
 
-const FORM_IS_OPEN = false;
+// Débloque le formulaire à partir de vendredi 20 mars 2026 à 20h
+const FORM_OPEN_DATE = new Date(2026, 2, 20, 20, 0, 0); // 20 mars 2026 20:00:00
+const FORM_IS_OPEN = new Date() >= FORM_OPEN_DATE;
 const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
 
 function buildFullName(firstName: string, lastName: string) {
