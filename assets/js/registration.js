@@ -23,8 +23,9 @@
   const submitLabel = document.getElementById("validate-pay-label");
   // Débloque le formulaire à partir de vendredi 20 mars 2026 à 20h
   const FORM_OPEN_DATE = new Date(2026, 2, 20, 20, 0, 0); // 20 mars 2026 20:00:00
-  const FORM_IS_OPEN = new Date() >= FORM_OPEN_DATE;
+  const FORM_IS_OPEN = true; // mode test: activation immediate
   const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
+  const TEST_CONFIRMATION_URL = "https://futsalsacrecoeur.vercel.app/confirmation";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
@@ -293,7 +294,19 @@
     setLoading(false);
 
     if (result.ok) {
-      window.location.href = result.redirectUrl;
+      const helloAssoUrl = new URL(result.redirectUrl);
+      const state = helloAssoUrl.searchParams.get("state");
+
+      if (!state) {
+        setError("State introuvable, impossible de confirmer l inscription.");
+        return;
+      }
+
+      const confirmationUrl = new URL(TEST_CONFIRMATION_URL);
+      confirmationUrl.searchParams.set("state", state);
+      confirmationUrl.searchParams.set("txId", "test-" + Date.now());
+
+      window.location.href = confirmationUrl.toString();
       return;
     }
 
