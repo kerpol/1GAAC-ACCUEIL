@@ -183,6 +183,44 @@
   font-size: 0.92rem;
 }
 
+.roleChoices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.roleChoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 48, 29, 0.18);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font-weight: 600;
+  color: #22301d;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.roleChoice:hover {
+  transform: translateY(-1px);
+  border-color: rgba(83, 143, 59, 0.42);
+}
+
+.roleChoiceSelected {
+  border-color: #406f2a;
+  box-shadow: 0 8px 20px rgba(64, 111, 42, 0.14);
+}
+
+.roleRadio {
+  accent-color: #406f2a;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
 .teamFieldset {
   border: none;
   padding: 0;
@@ -419,6 +457,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .fieldInput,
+  .roleChoice,
   .teamCard,
   .primaryButton,
   .secondaryButton,

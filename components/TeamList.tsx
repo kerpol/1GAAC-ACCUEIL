@@ -25,6 +25,7 @@ type FormValues = {
   classroom: string;
   school: string;
   email: string;
+  participantType: "" | "prof" | "visiteur" | "joueur";
   teamId: string;
 };
 
@@ -36,8 +37,15 @@ const DEFAULT_VALUES: FormValues = {
   classroom: "",
   school: "",
   email: "",
+  participantType: "",
   teamId: "",
 };
+
+const PARTICIPANT_OPTIONS = [
+  { value: "prof", label: "Prof" },
+  { value: "visiteur", label: "Visiteur" },
+  { value: "joueur", label: "Joueur" },
+] as const;
 
 const SCHOOL_OPTIONS = ["Sacré Coeur", "Freyssinet", "CFA"] as const;
 const TEAM_CONFIG = [
@@ -64,7 +72,15 @@ function buildFullName(firstName: string, lastName: string) {
 }
 
 function getFirstErrorField(errors: FormErrors): keyof FormValues | null {
-  const order: Array<keyof FormValues> = ["firstName", "lastName", "classroom", "school", "email", "teamId"];
+  const order: Array<keyof FormValues> = [
+    "firstName",
+    "lastName",
+    "classroom",
+    "school",
+    "email",
+    "participantType",
+    "teamId",
+  ];
   return order.find((key) => Boolean(errors[key])) ?? null;
 }
 
@@ -157,6 +173,10 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
   );
 
   const formIsValid = useMemo(() => {
+    if (values.participantType !== "joueur") {
+      return false;
+    }
+
     if (!values.teamId) {
       return false;
     }
@@ -202,6 +222,11 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
       return;
     }
 
+    if (fieldName === "participantType") {
+      teamAnchorRef.current?.focus();
+      return;
+    }
+
     if (fieldName === "teamId") {
       teamAnchorRef.current?.focus();
     }
@@ -218,9 +243,19 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
         }
       }
 
+      if (key === "participantType" && value !== "joueur") {
+        next.teamId = "";
+      }
+
       return next;
     });
-    setErrors((current) => ({ ...current, [key]: undefined, teamId: undefined, form: undefined }));
+    setErrors((current) => ({
+      ...current,
+      [key]: undefined,
+      teamId: undefined,
+      participantType: undefined,
+      form: undefined,
+    }));
     setGlobalMessage(null);
   }
 
@@ -249,7 +284,8 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
       classroom: validation.errors.classroom,
       school: validation.errors.school,
       email: validation.errors.email,
-      teamId: validation.errors.teamId,
+      participantType: !values.participantType ? "Choisis ton profil." : undefined,
+      teamId: values.participantType === "joueur" ? validation.errors.teamId : undefined,
       form: validation.errors.form,
     };
 
@@ -382,6 +418,47 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
             error={errors.email}
             onChange={(event) => handleValueChange("email", event.target.value)}
           />
+
+          <div className={styles.fieldWrap}>
+            <p className={styles.fieldLabel} id="participantType-label">
+              <span>Profil</span>
+              <span className={styles.requiredMark}>*</span>
+            </p>
+            <div
+              className={styles.roleChoices}
+              role="radiogroup"
+              aria-labelledby="participantType-label"
+              aria-describedby={errors.participantType ? "participantType-error" : undefined}
+            >
+              {PARTICIPANT_OPTIONS.map((option) => {
+                const isSelected = values.participantType === option.value;
+
+                return (
+                  <label
+                    key={option.value}
+                    className={`${styles.roleChoice} ${isSelected ? styles.roleChoiceSelected : ""}`.trim()}
+                  >
+                    <input
+                      type="radio"
+                      name="participantType"
+                      value={option.value}
+                      checked={isSelected}
+                      onChange={(event) =>
+                        handleValueChange("participantType", event.target.value as FormValues["participantType"])
+                      }
+                      className={styles.roleRadio}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {errors.participantType && (
+              <p id="participantType-error" className={styles.fieldError} role="alert">
+                {errors.participantType}
+              </p>
+            )}
+          </div>
         </div>
 
         <div
@@ -389,12 +466,16 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
           tabIndex={errors.teamId ? -1 : undefined}
           className={errors.teamId ? styles.teamErrorWrap : undefined}
         >
-          <TeamList
-            teams={visibleTeams}
-            selectedSchool={values.school}
-            selectedTeamId={values.teamId}
-            onChange={(teamId) => handleValueChange("teamId", teamId)}
-          />
+          {values.participantType === "joueur" ? (
+            <TeamList
+              teams={visibleTeams}
+              selectedSchool={values.school}
+              selectedTeamId={values.teamId}
+              onChange={(teamId) => handleValueChange("teamId", teamId)}
+            />
+          ) : (
+            <p className={styles.inlineNotice}>Selectionne le profil joueur pour choisir une equipe.</p>
+          )}
           {errors.teamId && (
             <p className={styles.fieldError} role="alert">
               {errors.teamId}
