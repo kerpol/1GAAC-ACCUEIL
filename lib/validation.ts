@@ -1,10 +1,12 @@
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
 
 export type ValidationResult = {
   isValid: boolean;
   errors: {
     fullName?: string;
     classroom?: string;
+    school?: string;
     email?: string;
     teamId?: string;
     form?: string;
@@ -25,12 +27,14 @@ export function normalizePersonName(value: string) {
 export function validateRegistrationForm(input: {
   fullName: string;
   classroom: string;
+  school: string;
   email: string;
   teamId: string;
 }): ValidationResult {
   const errors: ValidationResult["errors"] = {};
   const fullName = input.fullName.trim();
   const classroom = input.classroom.trim();
+  const school = input.school.trim();
   const email = input.email.trim();
   const teamId = input.teamId.trim();
 
@@ -40,6 +44,10 @@ export function validateRegistrationForm(input: {
 
   if (classroom.length < 2) {
     errors.classroom = "Renseigne ta classe.";
+  }
+
+  if (!ALLOWED_SCHOOLS.has(school)) {
+    errors.school = "Selectionne ton lycee.";
   }
 
   if (!EMAIL_RE.test(email)) {

@@ -8,7 +8,8 @@ import { normalizePersonName, validateRegistrationForm } from "../lib/validation
 import styles from "../styles/inscription.module.css";
 
 type TeamListProps = {
-  teams: Team[];
+  teams: TeamOption[];
+  selectedSchool: string;
   selectedTeamId: string;
   onChange: (teamId: string) => void;
 };
@@ -22,6 +23,7 @@ type FormValues = {
   firstName: string;
   lastName: string;
   classroom: string;
+  school: string;
   email: string;
   teamId: string;
 };
@@ -32,8 +34,21 @@ const DEFAULT_VALUES: FormValues = {
   firstName: "",
   lastName: "",
   classroom: "",
+  school: "",
   email: "",
   teamId: "",
+};
+
+const SCHOOL_OPTIONS = ["Sacré Coeur", "Freyssinet", "CFA"] as const;
+const TEAM_CONFIG = [
+  { displayName: "équipe sacré-coeur 1", allowedSchools: ["Sacré Coeur"] },
+  { displayName: "équipe sacré-coeur 2", allowedSchools: ["Sacré Coeur"] },
+  { displayName: "équipe CFA", allowedSchools: ["CFA"] },
+  { displayName: "équipe Freyssinet", allowedSchools: ["Freyssinet"] },
+] as const;
+
+type TeamOption = Team & {
+  allowedSchools: readonly string[];
 };
 
 // Débloque le formulaire à partir de vendredi 20 mars 2026 à 20h
@@ -49,33 +64,54 @@ function buildFullName(firstName: string, lastName: string) {
 }
 
 function getFirstErrorField(errors: FormErrors): keyof FormValues | null {
-  const order: Array<keyof FormValues> = ["firstName", "lastName", "classroom", "email", "teamId"];
+  const order: Array<keyof FormValues> = ["firstName", "lastName", "classroom", "school", "email", "teamId"];
   return order.find((key) => Boolean(errors[key])) ?? null;
 }
 
-export function TeamList({ teams, selectedTeamId, onChange }: TeamListProps) {
+function normalizeTeams(teams: Team[]): TeamOption[] {
+  return TEAM_CONFIG.map((config, index) => {
+    const team = teams[index];
+    if (!team) {
+      return null;
+    }
+
+    return {
+      ...team,
+      name: config.displayName,
+      allowedSchools: config.allowedSchools,
+    };
+  }).filter((team): team is TeamOption => team !== null);
+}
+
+export function TeamList({ teams, selectedSchool, selectedTeamId, onChange }: TeamListProps) {
   return (
     <fieldset className={styles.teamFieldset}>
       <legend className={styles.sectionLegend}>Choisis ton equipe</legend>
       <p className={styles.sectionHelp} id="team-choice-help">
-        Une equipe complete ne peut plus etre selectionnee.
+        {selectedSchool
+          ? "Choisis une equipe disponible pour ton lycee."
+          : "Choisis d abord ton lycee pour voir les equipes disponibles."}
       </p>
       <div className={styles.teamGrid} role="radiogroup" aria-describedby="team-choice-help">
         {teams.map((team) => {
           const isFull = team.current_count >= team.max_slots;
+          const isBlockedBySchool = !selectedSchool || !team.allowedSchools.includes(selectedSchool);
+          const isDisabled = isFull || isBlockedBySchool;
           const isSelected = selectedTeamId === team.id;
 
           return (
             <label
               key={team.id}
               className={`${styles.teamCard} ${isSelected ? styles.teamCardSelected : ""} ${
-                isFull ? styles.teamCardDisabled : ""
+                isDisabled ? styles.teamCardDisabled : ""
               }`.trim()}
-              aria-disabled={isFull}
+              aria-disabled={isDisabled}
             >
               <div className={styles.teamHeader}>
                 <span className={styles.teamName}>{team.name}</span>
-                {isFull && <span className={styles.badgeFull}>Complet</span>}
+                {(isFull || isBlockedBySchool) && (
+                  <span className={styles.badgeFull}>{isFull ? "Complet" : "Indisponible"}</span>
+                )}
               </div>
               <p className={styles.teamMeta}>
                 {team.current_count}/{team.max_slots} joueurs inscrits
@@ -86,7 +122,7 @@ export function TeamList({ teams, selectedTeamId, onChange }: TeamListProps) {
                 value={team.id}
                 checked={isSelected}
                 onChange={() => onChange(team.id)}
-                disabled={isFull}
+                disabled={isDisabled}
                 className={styles.teamRadio}
                 aria-label={`${team.name}, ${team.current_count} sur ${team.max_slots}`}
               />
@@ -109,12 +145,15 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
   const firstNameRef = useRef<HTMLInputElement | null>(null);
   const lastNameRef = useRef<HTMLInputElement | null>(null);
   const classroomRef = useRef<HTMLInputElement | null>(null);
+  const schoolRef = useRef<HTMLSelectElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
   const teamAnchorRef = useRef<HTMLDivElement | null>(null);
 
+  const visibleTeams = useMemo(() => normalizeTeams(teams), [teams]);
+
   const selectedTeam = useMemo(
-    () => teams.find((team) => team.id === values.teamId) ?? null,
-    [teams, values.teamId],
+    () => visibleTeams.find((team) => team.id === values.teamId) ?? null,
+    [visibleTeams, values.teamId],
   );
 
   const formIsValid = useMemo(() => {
@@ -125,6 +164,7 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
     return validateRegistrationForm({
       fullName: buildFullName(values.firstName, values.lastName),
       classroom: values.classroom,
+      school: values.school,
       email: values.email,
       teamId: values.teamId,
     }).isValid;
@@ -152,6 +192,11 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
       return;
     }
 
+    if (fieldName === "school") {
+      schoolRef.current?.focus();
+      return;
+    }
+
     if (fieldName === "email") {
       emailRef.current?.focus();
       return;
@@ -163,8 +208,19 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
   }
 
   function handleValueChange<Key extends keyof FormValues>(key: Key, value: FormValues[Key]) {
-    setValues((current) => ({ ...current, [key]: value }));
-    setErrors((current) => ({ ...current, [key]: undefined, form: undefined }));
+    setValues((current) => {
+      const next = { ...current, [key]: value };
+
+      if (key === "school") {
+        const currentTeam = visibleTeams.find((team) => team.id === current.teamId);
+        if (currentTeam && !currentTeam.allowedSchools.includes(String(value))) {
+          next.teamId = "";
+        }
+      }
+
+      return next;
+    });
+    setErrors((current) => ({ ...current, [key]: undefined, teamId: undefined, form: undefined }));
     setGlobalMessage(null);
   }
 
@@ -182,6 +238,7 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
     const validation = validateRegistrationForm({
       fullName,
       classroom: values.classroom,
+      school: values.school,
       email: values.email,
       teamId: values.teamId,
     });
@@ -190,6 +247,7 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
       firstName: !values.firstName.trim() ? "Renseigne ton prenom." : undefined,
       lastName: !values.lastName.trim() ? "Renseigne ton nom." : undefined,
       classroom: validation.errors.classroom,
+      school: validation.errors.school,
       email: validation.errors.email,
       teamId: validation.errors.teamId,
       form: validation.errors.form,
@@ -282,6 +340,35 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
             error={errors.classroom}
             onChange={(event) => handleValueChange("classroom", event.target.value)}
           />
+          <div className={styles.fieldWrap}>
+            <label className={styles.fieldLabel} htmlFor="school">
+              <span>Lycee</span>
+              <span className={styles.requiredMark}>*</span>
+            </label>
+            <select
+              ref={schoolRef}
+              id="school"
+              name="school"
+              className={`${styles.fieldInput} ${errors.school ? styles.fieldInputError : ""}`.trim()}
+              value={values.school}
+              aria-invalid={Boolean(errors.school)}
+              aria-describedby={errors.school ? "school-error" : undefined}
+              onChange={(event) => handleValueChange("school", event.target.value)}
+              required
+            >
+              <option value="">Choisir un lycee</option>
+              {SCHOOL_OPTIONS.map((school) => (
+                <option key={school} value={school}>
+                  {school}
+                </option>
+              ))}
+            </select>
+            {errors.school && (
+              <p id="school-error" className={styles.fieldError} role="alert">
+                {errors.school}
+              </p>
+            )}
+          </div>
           <FormField
             ref={emailRef}
             id="email"
@@ -302,7 +389,12 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
           tabIndex={errors.teamId ? -1 : undefined}
           className={errors.teamId ? styles.teamErrorWrap : undefined}
         >
-          <TeamList teams={teams} selectedTeamId={values.teamId} onChange={(teamId) => handleValueChange("teamId", teamId)} />
+          <TeamList
+            teams={visibleTeams}
+            selectedSchool={values.school}
+            selectedTeamId={values.teamId}
+            onChange={(teamId) => handleValueChange("teamId", teamId)}
+          />
           {errors.teamId && (
             <p className={styles.fieldError} role="alert">
               {errors.teamId}

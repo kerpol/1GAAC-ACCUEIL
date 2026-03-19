@@ -12,6 +12,7 @@
 
   const fullNameInput = document.getElementById("fullName");
   const classroomInput = document.getElementById("classroom");
+  const schoolInput = document.getElementById("school");
   const emailInput = document.getElementById("email");
   const teamOptions = document.getElementById("team-options");
   const teamHelp = document.getElementById("team-help");
@@ -24,11 +25,15 @@
   const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const SPECIAL_CHOICES = [
-    { id: "visitor", name: "Visiteur", is_unlimited: true },
-    { id: "teacher", name: "Prof", is_unlimited: true },
+  const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
+  const TEAM_CONFIG = [
+    { displayName: "équipe sacré-coeur 1", allowedSchools: ["Sacré Coeur"] },
+    { displayName: "équipe sacré-coeur 2", allowedSchools: ["Sacré Coeur"] },
+    { displayName: "équipe CFA", allowedSchools: ["CFA"] },
+    { displayName: "équipe Freyssinet", allowedSchools: ["Freyssinet"] },
   ];
   let selectedTeam = "";
+  let visibleTeams = [];
 
   function setError(message) {
     errorBox.textContent = message;
@@ -53,10 +58,37 @@
   function validateFields(payload) {
     if (!payload.fullName.trim()) return "Veuillez renseigner votre nom.";
     if (!payload.classroom.trim()) return "Veuillez renseigner votre classe.";
+    if (!payload.school.trim()) return "Veuillez selectionner votre lycee.";
+    if (!ALLOWED_SCHOOLS.has(payload.school)) return "Lycee invalide.";
     if (!payload.email.trim()) return "Veuillez renseigner votre email.";
     if (!EMAIL_RE.test(payload.email.trim())) return "Email invalide.";
     if (!payload.teamId) return "Veuillez selectionner une equipe.";
     return null;
+  }
+
+  function normalizeTeams(teams) {
+    return TEAM_CONFIG.map(function (config, index) {
+      const team = teams[index];
+      if (!team) return null;
+
+      return {
+        id: team.id,
+        name: config.displayName,
+        max_slots: team.max_slots,
+        current_count: team.current_count,
+        allowedSchools: config.allowedSchools,
+      };
+    }).filter(Boolean);
+  }
+
+  function getSelectedSchool() {
+    return schoolInput ? schoolInput.value : "";
+  }
+
+  function getTeamHelpMessage() {
+    return getSelectedSchool()
+      ? "Choisis une equipe disponible pour ton lycee."
+      : "Choisis d abord ton lycee pour voir les equipes disponibles.";
   }
 
   async function fetchTeams() {
@@ -71,8 +103,9 @@
         throw new Error("team-load");
       }
 
-      renderTeams(json.data);
-      teamHelp.textContent = "Choisis une equipe disponible.";
+      visibleTeams = normalizeTeams(json.data);
+      renderTeams(visibleTeams);
+      teamHelp.textContent = getTeamHelpMessage();
     } catch (_error) {
       teamHelp.textContent = "Impossible de charger les equipes pour le moment.";
       teamOptions.innerHTML = "";
@@ -81,32 +114,30 @@
 
   function renderTeams(teams) {
     teamOptions.innerHTML = "";
+    const selectedSchool = getSelectedSchool();
 
-    const existingNames = new Set(
-      teams.map(function (team) {
-        return String(team.name || "").trim().toLowerCase();
-      })
-    );
+    const currentSelection = teams.find(function (team) {
+      return team.id === selectedTeam;
+    });
 
-    const allChoices = teams.concat(
-      SPECIAL_CHOICES.filter(function (choice) {
-        return !existingNames.has(choice.name.toLowerCase());
-      })
-    );
+    if (currentSelection && !currentSelection.allowedSchools.includes(selectedSchool)) {
+      selectedTeam = "";
+    }
 
-    allChoices.forEach((team) => {
-      const isUnlimited = team.is_unlimited === true;
-      const isFull = !isUnlimited && Number(team.current_count) >= Number(team.max_slots);
+    teams.forEach((team) => {
+      const isFull = Number(team.current_count) >= Number(team.max_slots);
+      const isBlockedBySchool = !selectedSchool || !team.allowedSchools.includes(selectedSchool);
+      const isDisabled = isFull || isBlockedBySchool;
 
       const wrapper = document.createElement("label");
-      wrapper.className = "team-option" + (isFull ? " is-full" : "");
-      wrapper.setAttribute("aria-disabled", String(isFull));
+      wrapper.className = "team-option" + (isDisabled ? " is-full" : "");
+      wrapper.setAttribute("aria-disabled", String(isDisabled));
 
       const radio = document.createElement("input");
       radio.type = "radio";
       radio.name = "teamId";
       radio.value = team.id;
-      radio.disabled = isFull;
+      radio.disabled = isDisabled;
       radio.required = true;
       radio.addEventListener("change", function () {
         selectedTeam = radio.value;
@@ -118,35 +149,39 @@
       });
 
       wrapper.addEventListener("click", function () {
-        if (isFull) return;
+        if (isDisabled) return;
         radio.checked = true;
         radio.dispatchEvent(new Event("change", { bubbles: true }));
       });
 
       const name = document.createElement("span");
       name.className = "team-name";
-      const normalizedName = String(team.name || "").trim().toLowerCase();
-      name.textContent = normalizedName === "prof" ? "Prof (gratuit)" : team.name;
+      name.textContent = team.name;
 
       const count = document.createElement("span");
       count.className = "team-count";
-      count.textContent = isUnlimited
-        ? "Illimite"
-        : String(team.current_count) + "/" + String(team.max_slots);
+      count.textContent = String(team.current_count) + "/" + String(team.max_slots);
 
       wrapper.appendChild(radio);
       wrapper.appendChild(name);
       wrapper.appendChild(count);
 
-      if (isFull) {
+      if (isFull || isBlockedBySchool) {
         const badge = document.createElement("span");
         badge.className = "team-badge";
-        badge.textContent = "Complet";
+        badge.textContent = isFull ? "Complet" : "Indisponible";
         wrapper.appendChild(badge);
+      }
+
+      if (selectedTeam === team.id && !isDisabled) {
+        wrapper.classList.add("is-selected");
+        radio.checked = true;
       }
 
       teamOptions.appendChild(wrapper);
     });
+
+    teamHelp.textContent = getTeamHelpMessage();
   }
 
   async function postPrepare(payload) {
@@ -162,7 +197,12 @@
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          fullName: payload.fullName,
+          classroom: payload.classroom,
+          email: payload.email,
+          teamId: payload.teamId,
+        }),
         signal: controller.signal,
       });
 
@@ -212,6 +252,7 @@
     const payload = {
       fullName: fullNameInput.value,
       classroom: classroomInput.value,
+      school: schoolInput.value,
       email: emailInput.value,
       teamId: selectedTeam,
     };
@@ -236,6 +277,13 @@
 
   if (!FORM_IS_OPEN) {
     setLoading(false);
+  }
+
+  if (schoolInput) {
+    schoolInput.addEventListener("change", function () {
+      clearError();
+      renderTeams(visibleTeams);
+    });
   }
 
   fetchTeams();

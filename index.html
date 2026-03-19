@@ -75,8 +75,7 @@ A travers l’organisation de ce tournoi de futsal, notre objectif est de rassem
 							<article id="contact">
 								<h2 class="major">Inscription</h2>
 								<span class="image main"><img src="images/pic03.jpg" alt="" /></span>
-								<p>Renseigne tes informations et choisis une equipe. </p>
-								<p>La validation renvoie automatiquement vers un lien de paiement HelloAsso. La validation HelloAsso confirmera l'inscription.</p>
+								<p>La validation renvoie automatiquement vers un lien de paiement HelloAsso pour valider l'inscription.</p>
 
 								<form id="inscription-form" class="inscription-form" novalidate>
 									<div class="fields">
@@ -87,6 +86,15 @@ A travers l’organisation de ce tournoi de futsal, notre objectif est de rassem
 										<div class="field half">
 											<label for="classroom">Classe</label>
 											<input type="text" name="classroom" id="classroom" placeholder="Ex: 2nde B" required />
+										</div>
+										<div class="field half">
+											<label for="school">Lycee</label>
+											<select name="school" id="school" required>
+												<option value="">Choisir un lycee</option>
+												<option value="Sacré Coeur">Sacré Coeur</option>
+												<option value="Freyssinet">Freyssinet</option>
+												<option value="CFA">CFA</option>
+											</select>
 										</div>
 										<div class="field">
 											<label for="email">Email</label>
