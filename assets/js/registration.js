@@ -14,6 +14,8 @@
   const classroomInput = document.getElementById("classroom");
   const schoolInput = document.getElementById("school");
   const emailInput = document.getElementById("email");
+  const participantTypeInputs = form.querySelectorAll('input[name="participantType"]');
+  const teamField = document.getElementById("team-field");
   const teamOptions = document.getElementById("team-options");
   const teamHelp = document.getElementById("team-help");
   const errorBox = document.getElementById("form-error");
@@ -62,8 +64,31 @@
     if (!ALLOWED_SCHOOLS.has(payload.school)) return "Lycee invalide.";
     if (!payload.email.trim()) return "Veuillez renseigner votre email.";
     if (!EMAIL_RE.test(payload.email.trim())) return "Email invalide.";
+    if (!payload.participantType) return "Veuillez choisir un profil.";
+    if (payload.participantType !== "joueur") return "Seul le profil joueur peut choisir une equipe.";
     if (!payload.teamId) return "Veuillez selectionner une equipe.";
     return null;
+  }
+
+  function getSelectedParticipantType() {
+    const selected = form.querySelector('input[name="participantType"]:checked');
+    return selected ? selected.value : "";
+  }
+
+  function updateTeamVisibility() {
+    const isPlayer = getSelectedParticipantType() === "joueur";
+
+    if (!teamField) return;
+
+    if (isPlayer) {
+      teamField.hidden = false;
+      teamHelp.textContent = getTeamHelpMessage();
+      renderTeams(visibleTeams);
+      return;
+    }
+
+    selectedTeam = "";
+    teamField.hidden = true;
   }
 
   function normalizeTeams(teams) {
@@ -104,8 +129,7 @@
       }
 
       visibleTeams = normalizeTeams(json.data);
-      renderTeams(visibleTeams);
-      teamHelp.textContent = getTeamHelpMessage();
+      updateTeamVisibility();
     } catch (_error) {
       teamHelp.textContent = "Impossible de charger les equipes pour le moment.";
       teamOptions.innerHTML = "";
@@ -254,6 +278,7 @@
       classroom: classroomInput.value,
       school: schoolInput.value,
       email: emailInput.value,
+      participantType: getSelectedParticipantType(),
       teamId: selectedTeam,
     };
 
@@ -282,9 +307,19 @@
   if (schoolInput) {
     schoolInput.addEventListener("change", function () {
       clearError();
-      renderTeams(visibleTeams);
+      updateTeamVisibility();
+    });
+  }
+
+  if (participantTypeInputs.length > 0) {
+    participantTypeInputs.forEach(function (input) {
+      input.addEventListener("change", function () {
+        clearError();
+        updateTeamVisibility();
+      });
     });
   }
 
   fetchTeams();
+  updateTeamVisibility();
 })();
