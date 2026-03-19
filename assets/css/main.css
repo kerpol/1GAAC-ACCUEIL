@@ -1188,11 +1188,8 @@ input, select, textarea {
 		input[type="button"].primary,
 		button.primary,
 		.button.primary {
-			background-color: #ffffff;
-			color: #1b1f22 !important;
-			font-weight: 600;
-		}
-
+		background-color: #d32f2f;
+		color: #ffffff !important;
 		input[type="submit"].disabled, input[type="submit"]:disabled,
 		input[type="reset"].disabled,
 		input[type="reset"]:disabled,
