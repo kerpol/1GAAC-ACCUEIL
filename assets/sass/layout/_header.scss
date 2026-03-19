@@ -87,7 +87,7 @@
 			p {
 				text-transform: uppercase;
 				letter-spacing: _font(letter-spacing);
-				font-size: 0.8rem;
+				font-size: 0.9rem;
 				line-height: 2;
 			}
 		}
@@ -111,13 +111,13 @@
 
 					a {
 						display: block;
-						min-width: 7.5rem;
+						min-width: 8.5rem;
 						height: 2.75rem;
 						line-height: 2.75rem;
 						padding: 0 1.25rem 0 (1.25rem + _font(letter-spacing));
 						text-transform: uppercase;
 						letter-spacing: _font(letter-spacing);
-						font-size: 0.8rem;
+						font-size: 0.9rem;
 						border-bottom: 0;
 
 						&:hover {
@@ -161,7 +161,7 @@
 		}
 
 		body.is-article-visible & {
-			@include vendor('transform', 'scale(0.95)');
+			@include vendor('transform', 'scale(1)');
 			@include vendor('filter', 'blur(0.1rem)');
 			opacity: 0;
 		}
