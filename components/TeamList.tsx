@@ -36,6 +36,9 @@ const DEFAULT_VALUES: FormValues = {
   teamId: "",
 };
 
+const FORM_IS_OPEN = false;
+const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
+
 function buildFullName(firstName: string, lastName: string) {
   return [normalizePersonName(firstName), normalizePersonName(lastName)]
     .filter(Boolean)
@@ -166,6 +169,12 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setGlobalMessage(null);
+
+    if (!FORM_IS_OPEN) {
+      setErrors((current) => ({ ...current, form: FORM_CLOSED_MESSAGE }));
+      setGlobalMessage(FORM_CLOSED_MESSAGE);
+      return;
+    }
 
     const fullName = buildFullName(values.firstName, values.lastName);
     const validation = validateRegistrationForm({
@@ -306,14 +315,14 @@ export function RegistrationForm({ initialTeams, initialError }: RegistrationFor
           </p>
         </div>
 
-        <button type="submit" className={styles.primaryButton} disabled={!formIsValid || isPending}>
+        <button type="submit" className={styles.primaryButton} disabled={!FORM_IS_OPEN || !formIsValid || isPending}>
           {isPending ? (
             <span className={styles.buttonInlineState}>
               <span className={styles.spinnerSmall} aria-hidden="true" />
               Validation en cours...
             </span>
           ) : (
-            "Valider et payer"
+            FORM_IS_OPEN ? "Valider et payer" : "Formulaire disponible vendredi 20 mars"
           )}
         </button>
       </form>

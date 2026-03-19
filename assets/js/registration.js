@@ -18,6 +18,8 @@
   const errorBox = document.getElementById("form-error");
   const submitButton = document.getElementById("validate-pay-btn");
   const submitLabel = document.getElementById("validate-pay-label");
+  const FORM_IS_OPEN = false;
+  const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const SPECIAL_CHOICES = [
@@ -36,8 +38,13 @@
   }
 
   function setLoading(isLoading) {
-    submitButton.disabled = isLoading;
+    submitButton.disabled = isLoading || !FORM_IS_OPEN;
     submitButton.setAttribute("aria-busy", String(isLoading));
+    if (!FORM_IS_OPEN) {
+      submitLabel.textContent = "Formulaire disponible vendredi 20 mars";
+      return;
+    }
+
     submitLabel.textContent = isLoading ? "Traitement..." : "Valider et payer";
   }
 
@@ -195,6 +202,11 @@
     event.preventDefault();
     clearError();
 
+    if (!FORM_IS_OPEN) {
+      setError(FORM_CLOSED_MESSAGE);
+      return;
+    }
+
     const payload = {
       fullName: fullNameInput.value,
       classroom: classroomInput.value,
@@ -219,6 +231,10 @@
 
     setError(result.message || "Une erreur est survenue, reessayez.");
   });
+
+  if (!FORM_IS_OPEN) {
+    setLoading(false);
+  }
 
   fetchTeams();
 })();
