@@ -265,6 +265,44 @@
     }
   }
 
+  async function confirmRegistrationForTest(state, txId) {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(function () {
+      controller.abort();
+    }, 12000);
+
+    try {
+      const query = new URLSearchParams({ state: state, txId: txId });
+      const response = await fetch(apiUrl("/api/register/confirm?" + query.toString()), {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+        signal: controller.signal,
+      });
+
+      const json = await response.json().catch(function () {
+        return null;
+      });
+
+      if (!response.ok || !json || json.ok !== true) {
+        return {
+          ok: false,
+          message:
+            json && typeof json.error === "string"
+              ? json.error
+              : "La confirmation backend a echoue.",
+        };
+      }
+
+      return { ok: true };
+    } catch (_error) {
+      return { ok: false, message: "Impossible de joindre le backend de confirmation." };
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
   form.addEventListener("submit", async function (event) {
     event.preventDefault();
     clearError();
@@ -302,9 +340,16 @@
         return;
       }
 
+      const txId = "test-" + Date.now();
+      const confirmResult = await confirmRegistrationForTest(state, txId);
+      if (!confirmResult.ok) {
+        setError(confirmResult.message || "La confirmation backend a echoue.");
+        return;
+      }
+
       const confirmationUrl = new URL(TEST_CONFIRMATION_URL);
       confirmationUrl.searchParams.set("state", state);
-      confirmationUrl.searchParams.set("txId", "test-" + Date.now());
+      confirmationUrl.searchParams.set("txId", txId);
 
       window.location.href = confirmationUrl.toString();
       return;
