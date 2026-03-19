@@ -313,9 +313,8 @@
     setError(result.message || "Une erreur est survenue, reessayez.");
   });
 
-  if (!FORM_IS_OPEN) {
-    setLoading(false);
-  }
+  // Initialise explicitement l'etat du bouton au chargement de la page.
+  setLoading(false);
 
   if (schoolInput) {
     schoolInput.addEventListener("change", function () {
