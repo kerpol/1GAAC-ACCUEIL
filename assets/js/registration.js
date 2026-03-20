@@ -10,9 +10,6 @@
     return API_BASE_URL ? API_BASE_URL + path : path;
   }
 
-  const fullNameInput = document.getElementById("fullName");
-  const classroomInput = document.getElementById("classroom");
-  const schoolInput = document.getElementById("school");
   const emailInput = document.getElementById("email");
   const participantTypeInputs = form.querySelectorAll('input[name="participantType"]');
   const teamField = document.getElementById("team-field");
@@ -28,7 +25,6 @@
   const TEST_CONFIRMATION_URL = "https://futsalsacrecoeur.vercel.app/confirmation";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
   const TEAM_CONFIG = [
     { displayName: "équipe sacré-coeur 1", allowedSchools: ["Sacré Coeur"] },
     { displayName: "équipe sacré-coeur 2", allowedSchools: ["Sacré Coeur"] },
@@ -59,10 +55,6 @@
   }
 
   function validateFields(payload) {
-    if (!payload.fullName.trim()) return "Veuillez renseigner votre nom.";
-    if (!payload.classroom.trim()) return "Veuillez renseigner votre classe.";
-    if (!payload.school.trim()) return "Veuillez selectionner votre lycee.";
-    if (!ALLOWED_SCHOOLS.has(payload.school)) return "Lycee invalide.";
     if (!payload.email.trim()) return "Veuillez renseigner votre email.";
     if (!EMAIL_RE.test(payload.email.trim())) return "Email invalide.";
     if (!payload.participantType) return "Veuillez choisir un profil.";
@@ -107,14 +99,8 @@
     }).filter(Boolean);
   }
 
-  function getSelectedSchool() {
-    return schoolInput ? schoolInput.value : "";
-  }
-
   function getTeamHelpMessage() {
-    return getSelectedSchool()
-      ? "Choisis une equipe disponible pour ton lycee."
-      : "Choisis d abord ton lycee pour voir les equipes disponibles.";
+    return "Choisis une equipe disponible.";
   }
 
   async function fetchTeams() {
@@ -139,20 +125,9 @@
 
   function renderTeams(teams) {
     teamOptions.innerHTML = "";
-    const selectedSchool = getSelectedSchool();
-
-    const currentSelection = teams.find(function (team) {
-      return team.id === selectedTeam;
-    });
-
-    if (currentSelection && !currentSelection.allowedSchools.includes(selectedSchool)) {
-      selectedTeam = "";
-    }
-
     teams.forEach((team) => {
       const isFull = Number(team.current_count) >= Number(team.max_slots);
-      const isBlockedBySchool = !selectedSchool || !team.allowedSchools.includes(selectedSchool);
-      const isDisabled = isFull || isBlockedBySchool;
+      const isDisabled = isFull;
 
       const wrapper = document.createElement("label");
       wrapper.className = "team-option" + (isDisabled ? " is-full" : "");
@@ -191,10 +166,10 @@
       wrapper.appendChild(name);
       wrapper.appendChild(count);
 
-      if (isFull || isBlockedBySchool) {
+      if (isFull) {
         const badge = document.createElement("span");
         badge.className = "team-badge";
-        badge.textContent = isFull ? "Complet" : "Indisponible";
+        badge.textContent = "Complet";
         wrapper.appendChild(badge);
       }
 
@@ -223,8 +198,6 @@
           Accept: "application/json",
         },
         body: JSON.stringify({
-          fullName: payload.fullName,
-          classroom: payload.classroom,
           email: payload.email,
           teamId: payload.teamId,
         }),
@@ -313,9 +286,6 @@
     }
 
     const payload = {
-      fullName: fullNameInput.value,
-      classroom: classroomInput.value,
-      school: schoolInput.value,
       email: emailInput.value,
       participantType: getSelectedParticipantType(),
       teamId: selectedTeam,
@@ -360,13 +330,6 @@
 
   // Initialise explicitement l'etat du bouton au chargement de la page.
   setLoading(false);
-
-  if (schoolInput) {
-    schoolInput.addEventListener("change", function () {
-      clearError();
-      updateTeamVisibility();
-    });
-  }
 
   var profInfoBox = document.getElementById("prof-info");
 
