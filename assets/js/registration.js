@@ -48,14 +48,23 @@
   }
 
   function setLoading(isLoading) {
-    submitButton.disabled = isLoading || !FORM_IS_OPEN;
     submitButton.setAttribute("aria-busy", String(isLoading));
     if (!FORM_IS_OPEN) {
+      submitButton.disabled = true;
       submitLabel.textContent = "Formulaire disponible vendredi 20 mars";
       return;
     }
-
+    submitButton.disabled = isLoading || isSubmitBlocked();
     submitLabel.textContent = isLoading ? "Traitement..." : "Payer sur HelloAsso";
+  }
+
+  function isSubmitBlocked() {
+    return getSelectedParticipantType() === "joueur" && !selectedTeam;
+  }
+
+  function updateSubmitState() {
+    if (!FORM_IS_OPEN) return;
+    submitButton.disabled = isSubmitBlocked();
   }
 
   function validateFields(payload) {
@@ -168,6 +177,7 @@
           option.classList.remove("is-selected");
         });
         wrapper.classList.add("is-selected");
+        updateSubmitState();
       });
 
       wrapper.addEventListener("click", function () {
@@ -369,6 +379,7 @@
         clearError();
         updateTeamVisibility();
         updateProfInfo();
+        updateSubmitState();
       });
     });
   }
@@ -377,4 +388,5 @@
   updateTeamVisibility();
   updateFormSectionState();
   updateProfInfo();
+  updateSubmitState();
 })();
