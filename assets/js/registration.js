@@ -351,6 +351,11 @@
   setLoading(false);
 
   var profInfoBox = document.getElementById("prof-info");
+  var profInfoText = profInfoBox ? profInfoBox.querySelector("p") : null;
+  var profMessage =
+    "L'entrée est gratuite pour les enseignants-accompagnateurs. Vous devez valider sans frais votre réservation en ligne sur HelloAsso. Si vous le souhaitez, vous pouvez également réserver une pizza.";
+  var standardMessage =
+    "Vous devez valider votre réservation en ligne sur HelloAsso. Si vous le souhaitez, vous pouvez également réserver une pizza.";
 
   if (schoolInput) {
     schoolInput.addEventListener("change", function () {
@@ -369,8 +374,17 @@
 
   function updateProfInfo() {
     if (profInfoBox) {
-      var isProf = getSelectedParticipantType() === "prof";
-      profInfoBox.style.display = isProf ? "block" : "none";
+      var participantType = getSelectedParticipantType();
+      if (!participantType) {
+        profInfoBox.style.display = "none";
+        return;
+      }
+
+      if (profInfoText) {
+        profInfoText.textContent = participantType === "prof" ? profMessage : standardMessage;
+      }
+
+      profInfoBox.style.display = "block";
     }
   }
 
@@ -387,4 +401,5 @@
   fetchTeams();
   updateTeamVisibility();
   updateFormSectionState();
+  updateProfInfo();
 })();
