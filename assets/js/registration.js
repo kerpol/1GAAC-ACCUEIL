@@ -190,13 +190,8 @@
       name.className = "team-name";
       name.textContent = team.name;
 
-      const count = document.createElement("span");
-      count.className = "team-count";
-      count.textContent = String(team.current_count) + "/" + String(team.max_slots);
-
       wrapper.appendChild(radio);
       wrapper.appendChild(name);
-      wrapper.appendChild(count);
 
       if (isFull || isBlockedBySchool) {
         const badge = document.createElement("span");
