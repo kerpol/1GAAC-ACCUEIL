@@ -24,6 +24,8 @@
   const FORM_IS_OPEN = true; // mode test: activation immediate
   const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
   const TEST_CONFIRMATION_URL = "https://futsalsacrecoeur.vercel.app/confirmation";
+  const HELLOASSO_WIDGET_URL =
+    "https://www.helloasso.com/associations/ogec-lycee-sacre-coeur-la-salle/boutiques/tournoi-de-futsal-du-9-04-2026/widget-bouton";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
@@ -60,8 +62,9 @@
     if (!payload.school.trim()) return "Veuillez sélectionner votre lycée.";
     if (!ALLOWED_SCHOOLS.has(payload.school)) return "Lycée invalide.";
     if (!payload.participantType) return "Veuillez choisir un profil.";
-    if (payload.participantType !== "joueur") return "Seul le profil joueur peut choisir une equipe.";
-    if (!payload.teamId) return "Veuillez selectionner une equipe.";
+    if (payload.participantType === "joueur" && !payload.teamId) {
+      return "Veuillez selectionner une equipe.";
+    }
     return null;
   }
 
@@ -316,35 +319,7 @@
       return;
     }
 
-    setLoading(true);
-    const result = await postPrepare(payload);
-    setLoading(false);
-
-    if (result.ok) {
-      const helloAssoUrl = new URL(result.redirectUrl);
-      const state = helloAssoUrl.searchParams.get("state");
-
-      if (!state) {
-        setError("State introuvable, impossible de confirmer l inscription.");
-        return;
-      }
-
-      const txId = "test-" + Date.now();
-      const confirmResult = await confirmRegistrationForTest(state, txId);
-      if (!confirmResult.ok) {
-        setError(confirmResult.message || "La confirmation backend a echoue.");
-        return;
-      }
-
-      const confirmationUrl = new URL(TEST_CONFIRMATION_URL);
-      confirmationUrl.searchParams.set("state", state);
-      confirmationUrl.searchParams.set("txId", txId);
-
-      window.location.href = confirmationUrl.toString();
-      return;
-    }
-
-    setError(result.message || "Une erreur est survenue, reessayez.");
+    window.location.href = HELLOASSO_WIDGET_URL;
   });
 
   // Initialise explicitement l'etat du bouton au chargement de la page.
