@@ -368,11 +368,21 @@
     });
   }
 
+  var profInfoBox = document.getElementById("prof-info");
+
+  function updateProfInfo() {
+    if (profInfoBox) {
+      var isProf = getSelectedParticipantType() === "prof";
+      profInfoBox.style.display = isProf ? "block" : "none";
+    }
+  }
+
   if (participantTypeInputs.length > 0) {
     participantTypeInputs.forEach(function (input) {
       input.addEventListener("change", function () {
         clearError();
         updateTeamVisibility();
+        updateProfInfo();
       });
     });
   }
