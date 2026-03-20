@@ -86,48 +86,53 @@ A travers l’organisation de ce tournoi de futsal, notre objectif est de rassem
 												<option value="CFA">CFA</option>
 											</select>
 										</div>
-										<div class="field">
-											<fieldset class="role-fieldset">
-												<legend>Profil</legend>
-												<div class="role-options" role="radiogroup" aria-label="Profil">
-													<label class="role-option" for="role-prof">
-														<input type="radio" name="participantType" id="role-prof" value="prof" />
-														<span>Prof (gratuit)</span>
-													</label>
-													<label class="role-option" for="role-visiteur">
-														<input type="radio" name="participantType" id="role-visiteur" value="visiteur" />
-														<span>Visiteur</span>
-													</label>
-													<label class="role-option" for="role-joueur">
-														<input type="radio" name="participantType" id="role-joueur" value="joueur" />
-														<span>Joueur</span>
-													</label>
-												</div>
-											</fieldset>
-										</div>
-										<div id="prof-info" class="prof-info" role="note" style="display:none;">
-											<p>L'entrée est gratuite pour les enseignants-accompagnateurs. Vous devez valider sans frais votre réservation en ligne sur HelloAsso. Si vous le souhaitez, vous pouvez également réserver une pizza.</p>
-										</div>
-										<div class="field" id="team-field">
-											<fieldset class="team-fieldset">
-												<legend>Equipe</legend>
-												<p id="team-help" class="team-help">Chargement des equipes...</p>
-												<div id="team-options" class="team-options" role="radiogroup" aria-describedby="team-help"></div>
-											</fieldset>
-										</div>
 									</div>
 
-									<div id="form-error" class="form-error" role="alert" aria-live="assertive" tabindex="-1"></div>
+									<fieldset id="form-rest" class="form-rest-section" disabled>
+										<div class="fields">
+											<div class="field">
+												<fieldset class="role-fieldset">
+													<legend>Profil</legend>
+													<div class="role-options" role="radiogroup" aria-label="Profil">
+														<label class="role-option" for="role-prof">
+															<input type="radio" name="participantType" id="role-prof" value="prof" />
+															<span>Prof (gratuit)</span>
+														</label>
+														<label class="role-option" for="role-visiteur">
+															<input type="radio" name="participantType" id="role-visiteur" value="visiteur" />
+															<span>Visiteur</span>
+														</label>
+														<label class="role-option" for="role-joueur">
+															<input type="radio" name="participantType" id="role-joueur" value="joueur" />
+															<span>Joueur</span>
+														</label>
+													</div>
+												</fieldset>
+											</div>
+											<div id="prof-info" class="prof-info" role="note" style="display:none;">
+												<p>L'entrée est gratuite pour les enseignants-accompagnateurs. Vous devez valider sans frais votre réservation en ligne sur HelloAsso. Si vous le souhaitez, vous pouvez également réserver une pizza.</p>
+											</div>
+											<div class="field" id="team-field">
+												<fieldset class="team-fieldset">
+													<legend>Equipe</legend>
+													<p id="team-help" class="team-help">Chargement des equipes...</p>
+													<div id="team-options" class="team-options" role="radiogroup" aria-describedby="team-help"></div>
+												</fieldset>
+											</div>
+										</div>
 
-									<p>Le paiement se fait sur HelloAsso ainsi que le choix de la pizza. Une fois le paiement validé, un lien vous redirigera automatiquement vers notre site pour confirmer l'inscription dans la bonne équipe.</p>
+										<div id="form-error" class="form-error" role="alert" aria-live="assertive" tabindex="-1"></div>
 
-									<ul class="actions">
-										<li>
-											<button type="submit" id="validate-pay-btn" class="button primary" aria-describedby="form-availability-message">
-												<span id="validate-pay-label">Valider et payer</span>
-											</button>
-										</li>
-									</ul>
+										<p>Le paiement se fait sur HelloAsso ainsi que le choix de la pizza. Une fois le paiement validé, un lien vous redirigera automatiquement vers notre site pour confirmer l'inscription dans la bonne équipe.</p>
+
+										<ul class="actions">
+											<li>
+												<button type="submit" id="validate-pay-btn" class="button primary" aria-describedby="form-availability-message">
+													<span id="validate-pay-label">Payer sur HelloAsso</span>
+												</button>
+											</li>
+										</ul>
+									</fieldset>
 								</form>
 							</article>
 

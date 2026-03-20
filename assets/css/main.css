@@ -359,6 +359,20 @@ input, select, textarea {
 		z-index: 1;
 	}
 
+	.form-rest-section {
+		border: none;
+		padding: 0;
+		margin: 0;
+		min-width: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.form-rest-section[disabled] {
+		opacity: 0.35;
+		pointer-events: none;
+		user-select: none;
+	}
+
 	.prof-info {
 		margin-top: 0.75rem;
 		padding: 0.75rem 1rem;

@@ -11,6 +11,7 @@
   }
 
   const schoolInput = document.getElementById("school");
+  const formRest = document.getElementById("form-rest");
   const participantTypeInputs = form.querySelectorAll('input[name="participantType"]');
   const teamField = document.getElementById("team-field");
   const teamOptions = document.getElementById("team-options");
@@ -52,7 +53,7 @@
       return;
     }
 
-    submitLabel.textContent = isLoading ? "Traitement..." : "Valider et payer";
+    submitLabel.textContent = isLoading ? "Traitement..." : "Payer sur HelloAsso";
   }
 
   function validateFields(payload) {
@@ -354,8 +355,16 @@
   if (schoolInput) {
     schoolInput.addEventListener("change", function () {
       clearError();
+      updateFormSectionState();
       updateTeamVisibility();
     });
+  }
+
+  function updateFormSectionState() {
+    var hasSchool = Boolean(getSelectedSchool());
+    if (formRest) {
+      formRest.disabled = !hasSchool;
+    }
   }
 
   function updateProfInfo() {
@@ -377,4 +386,5 @@
 
   fetchTeams();
   updateTeamVisibility();
+  updateFormSectionState();
 })();
