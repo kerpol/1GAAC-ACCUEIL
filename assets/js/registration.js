@@ -25,7 +25,7 @@
   const FORM_CLOSED_MESSAGE = "Le formulaire sera disponible a partir du vendredi 20 mars.";
   const TEST_CONFIRMATION_URL = "https://futsalsacrecoeur.vercel.app/confirmation";
   const HELLOASSO_WIDGET_URL =
-    "https://www.helloasso.com/associations/ogec-lycee-sacre-coeur-la-salle/boutiques/tournoi-de-futsal-du-9-04-2026/widget-bouton";
+    "https://www.helloasso.com/associations/ogec-lycee-sacre-coeur-la-salle/boutiques/tournoi-de-futsal-du-9-04-2026";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
