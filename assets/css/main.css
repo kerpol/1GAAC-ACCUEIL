@@ -372,6 +372,12 @@ input, select, textarea {
 		z-index: 1;
 	}
 
+	.prof-info-contribution {
+		margin: 0.5rem 0 0 0;
+		color: #ff7f7f;
+		font-weight: 600;
+	}
+
 	.form-rest-section {
 		border: none;
 		padding: 0;
