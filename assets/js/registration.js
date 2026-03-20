@@ -10,7 +10,7 @@
     return API_BASE_URL ? API_BASE_URL + path : path;
   }
 
-  const emailInput = document.getElementById("email");
+  const schoolInput = document.getElementById("school");
   const participantTypeInputs = form.querySelectorAll('input[name="participantType"]');
   const teamField = document.getElementById("team-field");
   const teamOptions = document.getElementById("team-options");
@@ -25,6 +25,7 @@
   const TEST_CONFIRMATION_URL = "https://futsalsacrecoeur.vercel.app/confirmation";
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const ALLOWED_SCHOOLS = new Set(["Sacré Coeur", "Freyssinet", "CFA"]);
   const TEAM_CONFIG = [
     { displayName: "équipe sacré-coeur 1", allowedSchools: ["Sacré Coeur"] },
     { displayName: "équipe sacré-coeur 2", allowedSchools: ["Sacré Coeur"] },
@@ -55,8 +56,8 @@
   }
 
   function validateFields(payload) {
-    if (!payload.email.trim()) return "Veuillez renseigner votre email.";
-    if (!EMAIL_RE.test(payload.email.trim())) return "Email invalide.";
+    if (!payload.school.trim()) return "Veuillez sélectionner votre lycée.";
+    if (!ALLOWED_SCHOOLS.has(payload.school)) return "Lycée invalide.";
     if (!payload.participantType) return "Veuillez choisir un profil.";
     if (payload.participantType !== "joueur") return "Seul le profil joueur peut choisir une equipe.";
     if (!payload.teamId) return "Veuillez selectionner une equipe.";
@@ -99,8 +100,14 @@
     }).filter(Boolean);
   }
 
+  function getSelectedSchool() {
+    return schoolInput ? schoolInput.value : "";
+  }
+
   function getTeamHelpMessage() {
-    return "Choisis une equipe disponible.";
+    return getSelectedSchool()
+      ? "Choisis une équipe disponible pour ton lycée."
+      : "Choisis d'abord ton lycée pour voir les équipes disponibles.";
   }
 
   async function fetchTeams() {
@@ -125,9 +132,20 @@
 
   function renderTeams(teams) {
     teamOptions.innerHTML = "";
+    const selectedSchool = getSelectedSchool();
+
+    const currentSelection = teams.find(function (team) {
+      return team.id === selectedTeam;
+    });
+
+    if (currentSelection && !currentSelection.allowedSchools.includes(selectedSchool)) {
+      selectedTeam = "";
+    }
+
     teams.forEach((team) => {
       const isFull = Number(team.current_count) >= Number(team.max_slots);
-      const isDisabled = isFull;
+      const isBlockedBySchool = !selectedSchool || !team.allowedSchools.includes(selectedSchool);
+      const isDisabled = isFull || isBlockedBySchool;
 
       const wrapper = document.createElement("label");
       wrapper.className = "team-option" + (isDisabled ? " is-full" : "");
@@ -166,10 +184,10 @@
       wrapper.appendChild(name);
       wrapper.appendChild(count);
 
-      if (isFull) {
+      if (isFull || isBlockedBySchool) {
         const badge = document.createElement("span");
         badge.className = "team-badge";
-        badge.textContent = "Complet";
+        badge.textContent = isFull ? "Complet" : "Indisponible";
         wrapper.appendChild(badge);
       }
 
@@ -198,7 +216,7 @@
           Accept: "application/json",
         },
         body: JSON.stringify({
-          email: payload.email,
+          school: payload.school,
           teamId: payload.teamId,
         }),
         signal: controller.signal,
@@ -286,7 +304,7 @@
     }
 
     const payload = {
-      email: emailInput.value,
+      school: schoolInput ? schoolInput.value : "",
       participantType: getSelectedParticipantType(),
       teamId: selectedTeam,
     };
@@ -332,6 +350,13 @@
   setLoading(false);
 
   var profInfoBox = document.getElementById("prof-info");
+
+  if (schoolInput) {
+    schoolInput.addEventListener("change", function () {
+      clearError();
+      updateTeamVisibility();
+    });
+  }
 
   function updateProfInfo() {
     if (profInfoBox) {
