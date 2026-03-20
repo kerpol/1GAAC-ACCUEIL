@@ -320,6 +320,13 @@ input, select, textarea {
 		text-transform: uppercase;
 	}
 
+	.reservation-banner .banner-20h {
+		font-size: 1.25em;
+		color: #ffffff;
+		text-shadow: 0 0 8px rgba(255, 100, 100, 0.9);
+		letter-spacing: 0.05em;
+	}
+
 	.inscription-form .button[disabled] {
 		opacity: 0.6;
 		cursor: not-allowed;
