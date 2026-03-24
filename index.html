@@ -26,7 +26,7 @@
 							<div class="inner">
 								<h1>TOURNOI FUTSAL</h1>
 								<p>Bienvenue sur le site du tournoi de futsal interlycée.</p>
-								<p><span style="color:red; text-decoration:underline;">9 avril 2024</span></p>							<p id="countdown-header" style="font-size:1.7em; font-weight:bold;">Chargement du décompte...</p>							</div>
+								<p><span style="color:red; text-decoration:underline;">9 avril 2024</span></p>							<p id="countdown-header" style="font-size:1em;">Chargement du décompte...</p>							</div>
 						</div>
 						<nav>
 							<ul>
@@ -445,13 +445,18 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					if (hours > 0)   parts.push(hours   + ' heure' + (hours   > 1 ? 's' : ''));
 					parts.push(pad(minutes) + ' minute' + (minutes !== 1 ? 's' : ''));
 
+					var countdownStr = '<span style="color:#f0a500; font-weight:bold;">' + parts.join(' ') + '</span>';
+
 					var html =
 						'Réservations fermées dans <span class="banner-20h">' +
 						parts.join(' ') +
 						'</span> (vendredi 3 avril à 20h)';
 
+					var htmlHeader =
+						'Inscriptions fermées dans ' + countdownStr + ' (3 avril à 20h)';
+
 					if (banner) banner.innerHTML = html;
-					if (header) header.innerHTML = html;
+					if (header) header.innerHTML = htmlHeader;
 
 					var msUntilNextMinute = 60000 - (diff % 60000);
 					setTimeout(update, msUntilNextMinute);
