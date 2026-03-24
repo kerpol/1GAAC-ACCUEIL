@@ -26,8 +26,7 @@
 							<div class="inner">
 								<h1>TOURNOI FUTSAL</h1>
 								<p>Bienvenue sur le site du tournoi de futsal interlycée.</p>
-								<p>9 avril 2024</p>
-							</div>
+								<p><span style="color:red; text-decoration:underline;">9 avril 2024</span></p>							<p id="countdown-header" style="font-size:0.85em;">Chargement du décompte...</p>							</div>
 						</div>
 						<nav>
 							<ul>
@@ -422,7 +421,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 			(function () {
 				var target = new Date(2026, 3, 3, 20, 0, 0); // vendredi 3 avril 2026 à 20h
 				var banner = document.getElementById('countdown-banner');
-				if (!banner) return;
+				var header = document.getElementById('countdown-header');
 
 				function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
@@ -431,7 +430,8 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					var diff = target - now;
 
 					if (diff <= 0) {
-						banner.innerHTML = 'Réservations fermées !';
+						if (banner) banner.innerHTML = 'Réservations fermées !';
+						if (header) header.innerHTML = 'Réservations fermées !';
 						return;
 					}
 
@@ -445,10 +445,13 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 					if (hours > 0)   parts.push(hours   + ' heure' + (hours   > 1 ? 's' : ''));
 					parts.push(pad(minutes) + ' minute' + (minutes !== 1 ? 's' : ''));
 
-					banner.innerHTML =
+					var html =
 						'Réservations fermées dans <span class="banner-20h">' +
 						parts.join(' ') +
 						'</span> (vendredi 3 avril à 20h)';
+
+					if (banner) banner.innerHTML = html;
+					if (header) header.innerHTML = html;
 
 					var msUntilNextMinute = 60000 - (diff % 60000);
 					setTimeout(update, msUntilNextMinute);
