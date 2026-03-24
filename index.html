@@ -26,6 +26,7 @@
 							<div class="inner">
 								<h1>TOURNOI FUTSAL</h1>
 								<p>Bienvenue sur le site du tournoi de futsal interlycée.</p>
+								<p>9 avril 2024</p>
 							</div>
 						</div>
 						<nav>
@@ -91,7 +92,7 @@ A travers l’organisation de ce tournoi de futsal, notre objectif est de rassem
 						<!-- Contact -->
 							<article id="contact">
 								<h2 class="major">Inscription</h2>
-								<p class="reservation-banner">Réservations ouvertes à partir de vendredi 20 mars <span class="banner-20h">à 20h</span></p>
+							<p class="reservation-banner" id="countdown-banner">Chargement du décompte...</p>
 								<span class="image main"><img src="images/pic03.jpg" alt="" /></span>
 
 								<form id="inscription-form" class="inscription-form" novalidate>
@@ -417,6 +418,45 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 			<script src="assets/js/util.js"></script>
 			<script src="assets/js/main.js"></script>
 			<script src="assets/js/registration.js" defer></script>
+		<script>
+			(function () {
+				var target = new Date(2026, 3, 3, 20, 0, 0); // vendredi 3 avril 2026 à 20h
+				var banner = document.getElementById('countdown-banner');
+				if (!banner) return;
+
+				function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+				function update() {
+					var now = new Date();
+					var diff = target - now;
+
+					if (diff <= 0) {
+						banner.innerHTML = 'Réservations fermées !';
+						return;
+					}
+
+					var totalMinutes = Math.floor(diff / 60000);
+					var days    = Math.floor(totalMinutes / 1440);
+					var hours   = Math.floor((totalMinutes % 1440) / 60);
+					var minutes = totalMinutes % 60;
+
+					var parts = [];
+					if (days > 0)    parts.push(days    + ' jour'  + (days    > 1 ? 's' : ''));
+					if (hours > 0)   parts.push(hours   + ' heure' + (hours   > 1 ? 's' : ''));
+					parts.push(pad(minutes) + ' minute' + (minutes !== 1 ? 's' : ''));
+
+					banner.innerHTML =
+						'Réservations fermées dans <span class="banner-20h">' +
+						parts.join(' ') +
+						'</span> (vendredi 3 avril à 20h)';
+
+					var msUntilNextMinute = 60000 - (diff % 60000);
+					setTimeout(update, msUntilNextMinute);
+				}
+
+				update();
+			})();
+		</script>
 
 	</body>
 </html>
