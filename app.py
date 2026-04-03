@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from threading import Lock
 from typing import Any
 from urllib.parse import urlencode
 
@@ -26,6 +27,17 @@ SPECIAL_TEAM_CHOICES = {
     "teacher": "Prof",
 }
 SPECIAL_TEAM_MAX_SLOTS = 1000000
+FALLBACK_TEAM_MAX_SLOTS = 7
+FALLBACK_TEAMS = [
+    {"id": "fallback-sacre-1", "name": "équipe sacré-coeur 1", "max_slots": FALLBACK_TEAM_MAX_SLOTS},
+    {"id": "fallback-sacre-2", "name": "équipe sacré-coeur 2", "max_slots": FALLBACK_TEAM_MAX_SLOTS},
+    {"id": "fallback-cfa", "name": "équipe CFA", "max_slots": FALLBACK_TEAM_MAX_SLOTS},
+    {"id": "fallback-freyssinet", "name": "équipe Freyssinet", "max_slots": FALLBACK_TEAM_MAX_SLOTS},
+]
+FALLBACK_LOCK = Lock()
+FALLBACK_COUNT_BY_TEAM: dict[str, int] = {team["id"]: 0 for team in FALLBACK_TEAMS}
+FALLBACK_TX_INDEX: dict[str, dict[str, Any]] = {}
+FALLBACK_REGISTRATION_SEQ = 0
 
 
 class ApiError(Exception):
@@ -69,6 +81,14 @@ def get_required_env(name: str) -> str:
     return value
 
 
+def find_fallback_team_by_identifier(team_identifier: str) -> dict[str, Any] | None:
+    needle = team_identifier.strip().lower()
+    for team in FALLBACK_TEAMS:
+        if team["id"] == team_identifier or team["name"].lower() == needle:
+            return dict(team)
+    return None
+
+
 def find_team_by_identifier(team_identifier: str) -> dict[str, Any] | None:
     query = """
         SELECT id::text AS id, name, max_slots
@@ -77,10 +97,18 @@ def find_team_by_identifier(team_identifier: str) -> dict[str, Any] | None:
         ORDER BY CASE WHEN id::text = %s THEN 0 ELSE 1 END, name
         LIMIT 1
     """
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(query, (team_identifier, team_identifier, team_identifier))
-            return cur.fetchone()
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (team_identifier, team_identifier, team_identifier))
+                team = cur.fetchone()
+                if team is not None:
+                    return team
+    except (RuntimeError, PsycopgError):
+        # Mode de secours sans base: on retombe sur des équipes statiques.
+        return find_fallback_team_by_identifier(team_identifier)
+
+    return find_fallback_team_by_identifier(team_identifier)
 
 
 def is_special_team_identifier(team_identifier: str) -> bool:
@@ -172,13 +200,27 @@ def list_teams() -> JSONResponse:
         ORDER BY t.name
     """
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            try:
-                cur.execute(view_query)
-            except UndefinedTable:
-                cur.execute(fallback_query)
-            teams = [TeamItem.model_validate(row).model_dump() for row in cur.fetchall()]
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute(view_query)
+                except UndefinedTable:
+                    cur.execute(fallback_query)
+                teams = [TeamItem.model_validate(row).model_dump() for row in cur.fetchall()]
+    except (RuntimeError, PsycopgError):
+        with FALLBACK_LOCK:
+            teams = [
+                TeamItem.model_validate(
+                    {
+                        "id": team["id"],
+                        "name": team["name"],
+                        "max_slots": team["max_slots"],
+                        "current_count": FALLBACK_COUNT_BY_TEAM.get(team["id"], 0),
+                    }
+                ).model_dump()
+                for team in FALLBACK_TEAMS
+            ]
 
     return ok(teams)
 
@@ -237,20 +279,70 @@ def confirm_registration(
     enforce_rate_limit(request, "/api/register/confirm")
     payload = verify_state(state)
 
-    if txId:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "SELECT id FROM public.registrations WHERE helloasso_tx_id = %s LIMIT 1",
-                    (txId,),
+    def fallback_confirm() -> JSONResponse:
+        global FALLBACK_REGISTRATION_SEQ
+
+        if txId:
+            existing = FALLBACK_TX_INDEX.get(txId)
+            if existing is not None:
+                return ok(
+                    ConfirmResponseData(
+                        registrationId=existing["registrationId"],
+                        teamName=existing["teamName"],
+                        message="Inscription déjà confirmée (idempotence).",
+                    ).model_dump()
                 )
-                existing = cur.fetchone()
-                if existing is not None:
-                    return ok(
-                        ConfirmResponseData(
-                            message="Inscription déjà confirmée (idempotence)."
-                        ).model_dump()
+
+        team = find_fallback_team_by_identifier(payload.teamId)
+        if team is None:
+            if is_special_team_identifier(payload.teamId):
+                team = {
+                    "id": payload.teamId,
+                    "name": SPECIAL_TEAM_CHOICES[payload.teamId],
+                    "max_slots": SPECIAL_TEAM_MAX_SLOTS,
+                }
+            else:
+                raise ApiError(400, "Équipe introuvable pour cette confirmation de paiement.")
+
+        with FALLBACK_LOCK:
+            current_count = FALLBACK_COUNT_BY_TEAM.get(team["id"], 0)
+            if current_count >= int(team.get("max_slots", FALLBACK_TEAM_MAX_SLOTS)):
+                raise ApiError(409, "Cette équipe est complète. Merci de choisir une autre équipe.")
+
+            FALLBACK_REGISTRATION_SEQ += 1
+            registration_id = f"fallback-{FALLBACK_REGISTRATION_SEQ}"
+            FALLBACK_COUNT_BY_TEAM[team["id"]] = current_count + 1
+
+            if txId:
+                FALLBACK_TX_INDEX[txId] = {
+                    "registrationId": registration_id,
+                    "teamName": team["name"],
+                }
+
+        return ok(
+            ConfirmResponseData(
+                registrationId=registration_id,
+                teamName=team["name"],
+            ).model_dump()
+        )
+
+    if txId:
+        try:
+            with get_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "SELECT id FROM public.registrations WHERE helloasso_tx_id = %s LIMIT 1",
+                        (txId,),
                     )
+                    existing = cur.fetchone()
+                    if existing is not None:
+                        return ok(
+                            ConfirmResponseData(
+                                message="Inscription déjà confirmée (idempotence)."
+                            ).model_dump()
+                        )
+        except (RuntimeError, PsycopgError):
+            return fallback_confirm()
 
     try:
         with transaction() as conn:
@@ -334,8 +426,8 @@ def confirm_registration(
         raise ApiError(409, f"Inscription refusée par la base : {exc}") from exc
     except ApiError:
         raise
-    except PsycopgError as exc:
-        raise ApiError(500, f"Erreur de base de données : {exc}") from exc
+    except (RuntimeError, PsycopgError):
+        return fallback_confirm()
 
     data = ConfirmResponseData(
         registrationId=registration["id"],
